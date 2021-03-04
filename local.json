@@ -1,0 +1,6 @@
+{
+  "smile": {
+    "endpoint": "http://localhost:8080/api/ext/smile",
+    "public_key": "__API_PUBLIC_KEY__"
+  }
+}
