@@ -1,13 +1,12 @@
-import { VueStorefrontModule, VueStorefrontModuleConfig } from '@vue-storefront/core/lib/module'
+import { StorageManager } from '@vue-storefront/core/lib/storage-manager'
+import { StorefrontModule } from '@vue-storefront/core/lib/modules';
 import { afterRegistration } from './hooks/afterRegistration'
 import { module } from './store'
 
 export const KEY = 'smile'
 
-const moduleConfig: VueStorefrontModuleConfig = {
-  key: KEY,
-  store: { modules: [{ key: KEY, module }] },
-  afterRegistration
+export const SmileModule: StorefrontModule = function ({ store, appConfig }) {
+  StorageManager.init(KEY)
+  store.registerModule(KEY, module)
+  afterRegistration(appConfig, store)
 }
-
-export const Smile = new VueStorefrontModule(moduleConfig)

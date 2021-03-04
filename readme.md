@@ -10,16 +10,15 @@ By hand (preferer):
 git clone git@github.com:AbsoluteWebServices/vsf-smile.git ./vue-storefront/src/modules/
 ```
 
-Registration the Smile module. Go to `./vue-storefront/src/modules/index.ts`
+Registration the Smile module. Go to `./vue-storefront/src/modules/client.ts`
 
 ```js
 ...
-import { Smile } from './vsf-smile';
+import { SmileModule } from './vsf-smile';
 
-export const registerModules: VueStorefrontModule[] = [
-  ...
-  Smile
-]
+export function registerClientModules () {
+  registerModule(SmileModule)
+}
 ```
 
 Add the config from local.json to your config.
