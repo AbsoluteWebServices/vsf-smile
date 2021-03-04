@@ -4,6 +4,7 @@ import * as types from './mutation-types'
 import config from 'config'
 import fetch from 'isomorphic-fetch'
 import { processURLAddress } from '@vue-storefront/core/helpers'
+import { adjustMultistoreApiUrl } from '@vue-storefront/core/lib/multistore'
 import * as mappers from '../helpers/mappers'
 import PointsProduct from '../types/PointsProduct'
 
@@ -51,10 +52,36 @@ export const actions: ActionTree<SmileState, any> = {
     })
   },
 
-  getCustomers ({}, params): Promise<Response> {
+  getCustomers (_, params): Promise<Response> {
     let url: any = processURLAddress(config.smile.endpoint) + '/customers'
-    url = new URL(url),
+    url = new URL(url)
     Object.keys(params).forEach(key => url.searchParams.append(key, params[key]))
+
+    return new Promise<Response>((resolve, reject) => {
+      fetch(url, {
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+          'Accept': 'application/json'
+        }
+      }).then(resp => resp.json()).then(json => {
+        resolve(json.result)
+      }).catch(err => {
+        reject(err)
+      })
+    })
+  },
+
+  getDigest ({ state }): Promise<Response> {
+    if (!state.customerExternalId) {
+      return new Promise((resolve, reject) => {
+        console.warn('No customer identified')
+        reject({ message: 'No customer identified' })
+      })
+    }
+
+    let url = processURLAddress(config.smile.endpoint) + '/digest/' + state.customerExternalId
+    url = config.storeViews.multistore ? adjustMultistoreApiUrl(url) : url
 
     return new Promise<Response>((resolve, reject) => {
       fetch(url, {
@@ -102,7 +129,7 @@ export const actions: ActionTree<SmileState, any> = {
    */
   getPointsProducts ({ commit }, params): Promise<Response> {
     let url: any = processURLAddress(config.smile.endpoint) + '/points_products'
-    url = new URL(url),
+    url = new URL(url)
     Object.keys(params).forEach(key => url.searchParams.append(key, params[key]))
 
     return new Promise<Response>((resolve, reject) => {
@@ -186,13 +213,13 @@ export const actions: ActionTree<SmileState, any> = {
     if (!state.customer) {
       return new Promise((resolve, reject) => {
         console.warn('No customer identified')
-        reject({ message: 'No customer identified'})
+        reject({ message: 'No customer identified' })
       })
     }
 
     let data = mappers.mapOrder(order)
     data.customer = state.customer
-    
+
     const url = processURLAddress(config.smile.endpoint) + '/event/order/updated'
 
     return new Promise<Response>((resolve, reject) => {

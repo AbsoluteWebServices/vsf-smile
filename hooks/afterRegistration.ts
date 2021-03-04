@@ -1,5 +1,3 @@
-import fetch from 'isomorphic-fetch'
-import { adjustMultistoreApiUrl } from '@vue-storefront/core/lib/multistore'
 import rootStore from '@vue-storefront/core/store'
 import { isServer } from '@vue-storefront/core/helpers'
 import EventBus from '@vue-storefront/core/compatibility/plugins/event-bus'
@@ -10,24 +8,8 @@ const init = async (context, config, store) => {
   let digest = null
 
   if (store.state.smile.customerExternalId) {
-    let url = config.smile.endpoint
-    url += '/digest/' + store.state.smile.customerExternalId
-    url = config.storeViews.multistore ? adjustMultistoreApiUrl(url) : url
-
-    const resp = await fetch(url, {
-      method: 'GET',
-      mode: 'cors',
-      headers: {
-        'Accept': 'application/json'
-      }
-    })
-    const { code, result } = await resp.json()
-
-    if (code !== 200) {
-      return
-    }
-
-    digest = result.digest
+    const response = await store.dispatch(KEY + '/getDigest')
+    digest = response.digest
   }
 
   let docBody = context.document.getElementsByTagName('body')[0]
@@ -129,9 +111,10 @@ export function afterRegistration (config, store) {
       }
 
       if (!store.state.smile.customer) {
-        await store.dispatch(KEY + '/customerUpdated', receivedData)
         await store.dispatch(KEY + '/getCustomerByEmail', receivedData.email)
       }
+
+      await store.dispatch(KEY + '/customerUpdated', receivedData)
 
       reInitUI()
 
